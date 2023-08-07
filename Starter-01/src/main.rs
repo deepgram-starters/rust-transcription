@@ -45,8 +45,6 @@ async fn transcribe(request: Form<Request<'_>>) ->Json<Response> {
     let features = request.features.clone().unwrap_or_default();
     let dg_features: serde_json::Value = serde_json::from_str(&features).expect("Failed to parse features");
 
-    println!("{:?}", dg_features);
-
     let body_data = serde_json::json!({
         "url": url
     });
@@ -54,7 +52,7 @@ async fn transcribe(request: Form<Request<'_>>) ->Json<Response> {
     let client = reqwest::Client::new();
     let endpoint = "https://api.deepgram.com/v1/listen";
     let query_str = serde_urlencoded::to_string(&dg_features).expect("Failed to encode url");
-    let response = client.post(endpoint)
+    let response = client.post(format!("{}?{}", endpoint, query_str))
         .header("Authorization", format!("token {}", api_key))
         .json(&body_data)
         .send()
@@ -69,6 +67,7 @@ async fn transcribe(request: Form<Request<'_>>) ->Json<Response> {
         transcription: transcription,
     };
                    
+    println!("{:?}", query_str);
     Json(res_data)
 }
         
