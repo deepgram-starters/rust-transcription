@@ -43,7 +43,18 @@ async fn transcribe(request: Form<Request<'_>>) ->Json<Response> {
     let tier = request.tier.clone().unwrap_or_default();
 
     let features = request.features.clone().unwrap_or_default();
-    let dg_features: serde_json::Value = serde_json::from_str(&features).expect("Failed to parse features");
+    let mut dg_features: serde_json::Value = serde_json::from_str(&features).expect("Failed to parse features");
+
+    dg_features["model"] = serde_json::Value::String(model.clone());
+
+    if !version.is_empty() {
+        dg_features["version"] = serde_json::Value::String(version.clone());
+    }
+
+    if model != "whisper" {
+        dg_features["tier"] = serde_json::Value::String(tier.clone());
+    }
+
 
     let body_data = serde_json::json!({
         "url": url
@@ -67,7 +78,7 @@ async fn transcribe(request: Form<Request<'_>>) ->Json<Response> {
         transcription: transcription,
     };
                    
-    println!("{:?}", query_str);
+    println!("{:?}", features);
     Json(res_data)
 }
         
