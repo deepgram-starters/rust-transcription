@@ -1,37 +1,79 @@
-# Deepgram [Language] Starters
+<!--
+Edit Framework and/or Language into the title for e.g. 
+- Deepgram React Web App Starter
+- Deepgram PHP Websockets Starter
+- Deepgram Node Command-line Starter
+-->
 
-Please check out the starters contained in this repository, for examples of how to build Deepgram into your [Language] applications.
+# Deepgram Rust Starter
 
-- [Web App](./Starter-01/README.md)
-- [Websockets](./Starter-01/README.md)
-- [Command-line](./Starter-01/README.md)
+> **Note:** This project is not currently working. The community is welcome (and encouraged) to improve it.
 
-## What is Deepgram?
 
-Deepgram is an AI speech platform which specializes in (NLU) Natural Language Understanding features and Transcription. It can help get the following from your audio.
+<!-- Write an intro for this project -->
 
-- [Speaker diarization](https://deepgram.com/product/speech-understanding/)
-- [Language detection](https://deepgram.com/product/speech-understanding/)
-- [Summarization](https://deepgram.com/product/speech-understanding/)
-- [Topic detection](https://deepgram.com/product/speech-understanding/)
-- [Language translation](https://deepgram.com/product/speech-understanding/)
-- [Sentiment analysis](https://deepgram.com/product/speech-understanding/)
-- [Entity detection](https://deepgram.com/product/speech-understanding/)
-- [Transcription](https://deepgram.com/product/transcription/)
-- [Redaction](https://deepgram.com/product/transcription/)
+Nifty little into, maybe a screenshot.
 
-## Create a Free Deepgram Account
+## Sign-up to Deepgram
 
-Before you start, it's essential to generate a Deepgram API key to use in our starter applications. [Sign-up now for Deepgram](https://console.deepgram.com/signup).
+<!-- Please leave this section unchanged, unless providing a UTM. -->
 
-## Issue Reporting
+Before you start, it's essential to generate a Deepgram API key to use in this project. [Sign-up now for Deepgram](https://console.deepgram.com/signup).
 
-If you have found a bug or if you have a feature request, please report them at this repository issues section. Please do not report security vulnerabilities on the public GitHub issue tracker. The [Security Policy](./.github/SECURITY.md) details the procedure for contacting Deepgram.
+## Quickstart
 
-## Author
+<!-- Delete these sections as appropriate. Please include at least a manual one. -->
 
-[Deepgram](https://deepgram.com)
+### Manual
 
-## License
+Follow these steps to get started with this starter application.
 
-This project is licensed under the MIT license. See the [LICENSE](./LICENSE) file for more info.
+<!-- Edit as appropriate -->
+
+1. [Manual steps]
+2. [To get this]
+3. [App working]
+
+### Deepgram CLI
+
+<!-- Requires a deepgram.toml file correctly formatted to launch with the Deepgram CLI -->
+
+Having installed the [Deepgram CLI](https://github.com/deepgram-devs/deepgram-cli), run [`deepgram generate blank-template-project`] to clone and set up [[deepgram-starters/project-template](https://github.com/deepgram-starters/project-template)] on your machine.
+
+### Glitch Remix
+
+Click this button to launch this starter application on Glitch.
+
+<!-- Requires .env file. Please describe steps here to edit the blank .env file after it has been remixed. **Do not prepopulate** the .env file that might be overwritten by any CLI setup scripts. Anything prepopulated should be placed in the sample .env file for the CLI, and the .env file for Glitch. -->
+
+[[![Remix on Glitch](https://cdn.glitch.com/2703baf2-b643-4da7-ab91-7ee2a2d00b5b%2Fremix-button-v2.svg?v=1622676640618)](https://glitch.com/edit/#!/import/github/deepgram-starters/project-template)]
+
+### StackBlitz
+
+Click this button to launch this starter application on StackBlitz.
+
+<!-- Please use a .stackblitzrc file to define a startCommand: https://developer.stackblitz.com/guides/integration/open-from-github#launching-a-script-on-project-load -->
+
+[[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/fork/github/deepgram-starters/project-template)]
+
+### Heroku
+
+Click this button to launch this starter application on Heroku.
+
+<!-- Please use an app.json file to define how Heroku should bootstrap your application: https://devcenter.heroku.com/articles/app-json-schema -->
+
+[[![Open in StackBlitz](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/deepgram-starters/project-template)]
+
+### Netlify
+
+Click this button to launch this starter application on Netlify.
+
+<!-- Please use a netlify.toml file to define how Netlify should bootstrap your application: https://docs.netlify.com/site-deploys/create-deploys/#template-configuration -->
+
+[[![Open in StackBlitz](https://www.netlify.com/img/deploy/button.svg)](https://github.com/deepgram-starters/project-template)]
+
+## Related Content
+
+- [Any Deepgram content or docs]
+- [related to this starter application]
+- [In a nice long list]
