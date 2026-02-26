@@ -1,0 +1,40 @@
+{
+  "name": "@deepgram/transcription-html",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pure HTML/CSS/JS frontend for Deepgram Transcription",
+  "main": "index.html",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "deepgram",
+    "transcription",
+    "html",
+    "javascript",
+    "css"
+  ],
+  "author": "Deepgram",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/deepgram-starters/transcription-html.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "defaults",
+    "not ie 11",
+    "not op_mini all"
+  ],
+  "dependencies": {
+    "@deepgram/styles": "latest"
+  },
+  "devDependencies": {
+    "vite": "^7.2.2"
+  }
+}
