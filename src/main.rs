@@ -15,7 +15,7 @@
 
 use axum::{
     Router,
-    extract::Multipart,
+    extract::{DefaultBodyLimit, Multipart},
     http::{HeaderMap, Method, Request, StatusCode},
     middleware::{self, Next},
     response::{IntoResponse, Json, Response},
@@ -433,19 +433,73 @@ async fn handle_transcription(
         }
     }
 
-    let audio_data = match audio_data {
-        Some(data) if !data.is_empty() => data,
-        _ => {
+    // If no file was uploaded, check for a URL field
+    let audio_data = if let Some(data) = audio_data.filter(|d| !d.is_empty()) {
+        data
+    } else if let Some(url) = form_fields.remove("url").filter(|u| !u.is_empty()) {
+        // Validate URL format
+        if reqwest::Url::parse(&url).is_err() {
             return (
                 StatusCode::BAD_REQUEST,
                 Json(format_error_response(
-                    "Either file or url must be provided",
+                    "Invalid URL format",
                     400,
-                    Some("MISSING_INPUT"),
+                    Some("INVALID_URL"),
                 )),
             )
                 .into_response();
         }
+        // Download audio from URL
+        match state.http_client.get(&url).timeout(std::time::Duration::from_secs(30)).send().await {
+            Ok(resp) if resp.status().is_success() => {
+                match resp.bytes().await {
+                    Ok(bytes) => bytes.to_vec(),
+                    Err(e) => {
+                        return (
+                            StatusCode::BAD_REQUEST,
+                            Json(format_error_response(
+                                &format!("Failed to read audio from URL: {}", e),
+                                400,
+                                Some("URL_FETCH_FAILED"),
+                            )),
+                        )
+                            .into_response();
+                    }
+                }
+            }
+            Ok(resp) => {
+                return (
+                    StatusCode::BAD_REQUEST,
+                    Json(format_error_response(
+                        &format!("Failed to fetch audio from URL: HTTP {}", resp.status()),
+                        400,
+                        Some("URL_FETCH_FAILED"),
+                    )),
+                )
+                    .into_response();
+            }
+            Err(e) => {
+                return (
+                    StatusCode::BAD_REQUEST,
+                    Json(format_error_response(
+                        &format!("Failed to fetch audio from URL: {}", e),
+                        400,
+                        Some("URL_FETCH_FAILED"),
+                    )),
+                )
+                    .into_response();
+            }
+        }
+    } else {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(format_error_response(
+                "Either file or url must be provided",
+                400,
+                Some("MISSING_INPUT"),
+            )),
+        )
+            .into_response();
     };
 
     // Build query parameters from request query string and form fields
@@ -619,8 +673,10 @@ async fn main() {
     });
 
     // Build protected routes (with JWT auth middleware)
+    // 50 MB body limit for file uploads (default 2 MB is too small for audio)
     let protected = Router::new()
         .route("/api/transcription", post(handle_transcription))
+        .layer(DefaultBodyLimit::max(50 * 1024 * 1024))
         .layer(middleware::from_fn(require_session));
 
     // Build unprotected routes
