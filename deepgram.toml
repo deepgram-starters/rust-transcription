@@ -6,6 +6,7 @@ repository = "https://github.com/deepgram-starters/rust-transcription"
 useCase = "transcription"
 language = "rust"
 framework = "axum"
+sdk = "deepgram"
 tags = ["speech-to-text", "transcription", "prerecorded", "rust", "axum"]
 
 [check]

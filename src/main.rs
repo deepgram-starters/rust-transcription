@@ -22,6 +22,13 @@ use axum::{
     routing::{get, post},
 };
 use chrono::Utc;
+use deepgram::{
+    common::{
+        audio_source::AudioSource,
+        options::{Language, Model, Options},
+    },
+    Deepgram, DeepgramError,
+};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
@@ -258,50 +265,73 @@ fn first_non_empty(vals: &[&str], default: &str) -> String {
 // SECTION 6: DEEPGRAM API CLIENT - Direct HTTP calls to Deepgram REST API
 // ============================================================================
 
-/// Sends audio bytes to the Deepgram /v1/listen endpoint and returns the
-/// parsed JSON response. Query parameters control model selection and
-/// feature flags.
+/// Sends audio bytes to Deepgram via the official `deepgram` crate and returns
+/// the response as a JSON value (matching the raw `/v1/listen` shape the
+/// frontend already consumes).
+///
+/// The incoming `params` are the same key/value pairs that were previously
+/// appended to the request URL; here they are mapped onto the SDK's typed
+/// [`Options`] builder. The audio is uploaded as a raw buffer, exactly as
+/// before.
 async fn call_deepgram_transcription(
-    client: &reqwest::Client,
     api_key: &str,
     audio_data: Vec<u8>,
     params: &[(String, String)],
 ) -> Result<serde_json::Value, String> {
-    let mut url = reqwest::Url::parse("https://api.deepgram.com/v1/listen")
-        .map_err(|e| format!("Failed to parse API URL: {}", e))?;
+    let dg = Deepgram::new(api_key)
+        .map_err(|e| format!("Failed to initialize Deepgram client: {}", e))?;
 
-    // Build URL with query parameters
-    for (k, v) in params {
-        if !v.is_empty() {
-            url.query_pairs_mut().append_pair(k, v);
-        }
+    let lookup = |key: &str| {
+        params
+            .iter()
+            .find(|(k, _)| k == key)
+            .map(|(_, v)| v.as_str())
+            .filter(|v| !v.is_empty())
+    };
+    let as_bool = |key: &str| lookup(key).map(|v| v == "true");
+
+    let mut builder = Options::builder();
+    if let Some(model) = lookup("model") {
+        builder = builder.model(Model::from(model.to_string()));
     }
-
-    let resp = client
-        .post(url)
-        .header("Authorization", format!("Token {}", api_key))
-        .header("Content-Type", "application/octet-stream")
-        .body(audio_data)
-        .timeout(std::time::Duration::from_secs(120))
-        .send()
-        .await
-        .map_err(|e| format!("Deepgram API request failed: {}", e))?;
-
-    let status = resp.status();
-    let body = resp
-        .text()
-        .await
-        .map_err(|e| format!("Failed to read response body: {}", e))?;
-
-    if !status.is_success() {
-        return Err(format!(
-            "Deepgram API returned status {}: {}",
-            status.as_u16(),
-            body
-        ));
+    if let Some(language) = lookup("language") {
+        builder = builder.language(Language::from(language.to_string()));
     }
+    if let Some(v) = as_bool("smart_format") {
+        builder = builder.smart_format(v);
+    }
+    if let Some(v) = as_bool("punctuate") {
+        builder = builder.punctuate(v);
+    }
+    if let Some(v) = as_bool("diarize") {
+        builder = builder.diarize(v);
+    }
+    if let Some(v) = as_bool("paragraphs") {
+        builder = builder.paragraphs(v);
+    }
+    if let Some(v) = as_bool("utterances") {
+        builder = builder.utterances(v);
+    }
+    if let Some(v) = as_bool("filler_words") {
+        builder = builder.filler_words(v);
+    }
+    let options = builder.build();
 
-    serde_json::from_str(&body).map_err(|e| format!("Failed to parse Deepgram response: {}", e))
+    let source = AudioSource::from_buffer_with_mime_type(audio_data, "application/octet-stream");
+
+    let response = dg
+        .transcription()
+        .prerecorded(source, &options)
+        .await
+        .map_err(|e| match &e {
+            DeepgramError::DeepgramApiError { body, .. } => {
+                format!("Deepgram API returned an error: {}", body)
+            }
+            other => format!("Deepgram API request failed: {}", other),
+        })?;
+
+    serde_json::to_value(&response)
+        .map_err(|e| format!("Failed to serialize Deepgram response: {}", e))
 }
 
 // ============================================================================
@@ -552,9 +582,7 @@ async fn handle_transcription(
 
     // Call Deepgram REST API
     let dg_response =
-        match call_deepgram_transcription(&state.http_client, &state.api_key, audio_data, &params)
-            .await
-        {
+        match call_deepgram_transcription(&state.api_key, audio_data, &params).await {
             Ok(resp) => resp,
             Err(e) => {
                 eprintln!("Transcription error: {}", e);
